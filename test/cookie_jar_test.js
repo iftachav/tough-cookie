@@ -541,4 +541,31 @@ vows
       }
     }
   })
+  .addBatch({
+    "Check vulnerable- prototype pollution": {
+      "Adding cookies- regular and polluted": {
+        topic: function() {
+          const jar = new tough.CookieJar(undefined, {
+            rejectPublicSuffixes: false
+          });
+          // adding a polluted cookie
+          jar.setCookieSync(
+            "Auth=Lol; Domain=google.com; Path=/genericpath",
+            "https://google.com/"
+          );
+          // adding a regular cookie
+          jar.setCookieSync(
+            "iftach=polluted; Domain=__proto__; Path=/genericpath",
+            "https://__proto__/admin"
+          );
+          this.callback();
+        },
+        "Trying to access polluted information": function() {
+          const pollutedObject = {};
+          // console.log(pollutedObject["/genericpath"])
+          assert(pollutedObject["/genericpath"] === undefined);
+        }
+      }
+    }
+  })
   .export(module);
